@@ -1,13 +1,13 @@
 <?php
 
-namespace Vendor\ConfigResolver\Resolvers;
+namespace DRC\ConfigResolver\Resolvers;
 
 use ReflectionClass;
-use Vendor\ConfigResolver\Exceptions\InvalidClassException;
-use Vendor\ConfigResolver\Exceptions\InvalidContractException;
-use Vendor\ConfigResolver\Exceptions\InvalidParentException;
-use Vendor\ConfigResolver\Exceptions\MissingConfigException;
-use Vendor\ConfigResolver\Exceptions\NotInstantiableException;
+use DRC\ConfigResolver\Exceptions\InvalidClassException;
+use DRC\ConfigResolver\Exceptions\InvalidContractException;
+use DRC\ConfigResolver\Exceptions\InvalidParentException;
+use DRC\ConfigResolver\Exceptions\MissingConfigException;
+use DRC\ConfigResolver\Exceptions\NotInstantiableException;
 
 class ClassResolver
 {
