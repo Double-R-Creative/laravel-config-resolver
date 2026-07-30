@@ -11,6 +11,8 @@ use DRC\ConfigResolver\Exceptions\NotInstantiableException;
 
 class ClassResolver
 {
+    protected static array $resolved = [];
+
     protected ?string $requiredContract = null;
 
     protected ?string $requiredParent = null;
@@ -20,6 +22,21 @@ class ClassResolver
     public function __construct(
         protected string $configKey
     ) {
+    }
+
+    public static function flushCache(): void
+    {
+        static::$resolved = [];
+    }
+
+    protected function cacheKey(): string
+    {
+        return implode("\0", [
+            $this->configKey,
+            $this->requiredContract ?? '',
+            $this->requiredParent ?? '',
+            $this->mustBeInstantiable ? '1' : '0',
+        ]);
     }
 
     public function implements(string $contract): static
@@ -45,6 +62,12 @@ class ClassResolver
 
     public function resolve(): string
     {
+        $key = $this->cacheKey();
+
+        if (array_key_exists($key, static::$resolved)) {
+            return static::$resolved[$key];
+        }
+
         $class = config($this->configKey);
 
         if (blank($class)) {
@@ -91,7 +114,7 @@ class ClassResolver
             }
         }
 
-        return $class;
+        return static::$resolved[$key] = $class;
     }
 
     public function make(array $parameters = []): object

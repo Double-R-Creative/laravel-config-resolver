@@ -71,6 +71,45 @@ $class = Config::class('models.customer')
     ->resolve();
 ```
 
+## Resolution Caching
+
+Each call to `resolve()` is fast (~5–20µs per call), but when the same resolver
+is invoked repeatedly within a single request, results are cached to eliminate
+redundant validation.
+
+The cache is keyed on the full resolver state — config key, contract, parent,
+and instantiable flag — so resolvers with different constraints always return
+correct results independently.
+
+```php
+// First call runs validation, caches the result
+$class = Config::class('services.payment.gateway')
+    ->implements(SomeContract::class)
+    ->resolve();
+
+// Second call with identical constraints returns from cache
+$class = Config::class('services.payment.gateway')
+    ->implements(SomeContract::class)
+    ->resolve(); // cached
+```
+
+If `resolve()` throws, nothing is cached — re-calling with the same state will
+re-run all checks.
+
+The cache is a static array that persists for the lifetime of the request.
+Under PHP-FPM each request is a fresh process, so the cache starts empty every
+time. Under Octane / Swoole / RoadRunner, statics persist across requests but
+remain safe because identical resolver state always produces the same result.
+
+To clear the cache explicitly:
+
+```php
+ClassResolver::flushCache();
+```
+
+This is called automatically in the test suite between tests to prevent stale
+state across config changes.
+
 ## Exceptions
 
 All exceptions extend `ConfigException` (which extends `RuntimeException`).

@@ -23,6 +23,8 @@ class ClassResolverTest extends TestCase
     {
         parent::setUp();
 
+        ClassResolver::flushCache();
+
         config()->set('resolver.class', ConcreteClass::class);
         config()->set('resolver.implementation', ContractImplementation::class);
         config()->set('resolver.extension', ExtendingConcrete::class);
