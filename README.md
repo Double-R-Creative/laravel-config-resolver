@@ -9,7 +9,7 @@ This is especially useful in modular, multi-app Laravel setups where config item
 ## Installation
 
 ```bash
-composer require vendor/laravel-config-resolver
+composer require drc/laravel-config-resolver
 ```
 
 ## Quick Start
