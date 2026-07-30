@@ -1,8 +1,8 @@
 <?php
 
-namespace Vendor\ConfigResolver;
+namespace DRC\ConfigResolver;
 
-use Vendor\ConfigResolver\Resolvers\ClassResolver;
+use DRC\ConfigResolver\Resolvers\ClassResolver;
 
 class Config
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendor\ConfigResolver\Providers;
+namespace DRC\ConfigResolver\Providers;
 
 use Illuminate\Support\ServiceProvider;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendor\ConfigResolver\Exceptions;
+namespace DRC\ConfigResolver\Exceptions;
 
 class InvalidClassException extends ConfigException
 {
