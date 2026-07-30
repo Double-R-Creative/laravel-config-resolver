@@ -1,5 +1,5 @@
 {
-    "name": "vendor/laravel-config-resolver",
+    "name": "drc/laravel-config-resolver",
     "description": "Fluent configuration validation and class resolution for Laravel packages.",
     "type": "library",
     "license": "MIT",
@@ -13,8 +13,8 @@
     ],
     "authors": [
         {
-            "name": "Your Name",
-            "email": "you@example.com"
+            "name": "Russell Ramey",
+            "email": "doublercreative@gmail.com"
         }
     ],
     "require": {
