@@ -220,4 +220,78 @@ class ClassResolverTest extends TestCase
 
         $this->assertSame('test-name', $instance->name);
     }
+
+    public function test_fallback_is_used_when_config_key_is_missing(): void
+    {
+        $result = Config::class('resolver.never_set', ConcreteClass::class)->resolve();
+
+        $this->assertSame(ConcreteClass::class, $result);
+    }
+
+    public function test_fallback_is_not_used_when_config_value_is_null(): void
+    {
+        config()->set('resolver.fallback', null);
+
+        $this->expectException(MissingConfigException::class);
+        $this->expectExceptionMessage('resolver.fallback');
+
+        Config::class('resolver.fallback', ConcreteClass::class)->resolve();
+    }
+
+    public function test_config_value_wins_over_fallback(): void
+    {
+        config()->set('resolver.fallback', ExtendingConcrete::class);
+
+        $result = Config::class('resolver.fallback', ConcreteClass::class)->resolve();
+
+        $this->assertSame(ExtendingConcrete::class, $result);
+    }
+
+    public function test_fallback_is_validated_against_constraints(): void
+    {
+        $this->expectException(InvalidContractException::class);
+        $this->expectExceptionMessage('SomeContract');
+
+        Config::class('resolver.never_set', ConcreteClass::class)
+            ->implements(SomeContract::class)
+            ->resolve();
+    }
+
+    public function test_resolve_throws_missing_config_exception_when_config_and_fallback_are_null(): void
+    {
+        config()->set('resolver.fallback', null);
+
+        $this->expectException(MissingConfigException::class);
+        $this->expectExceptionMessage('resolver.fallback');
+
+        Config::class('resolver.fallback')->resolve();
+    }
+
+    public function test_resolve_throws_missing_config_exception_when_config_and_fallback_are_blank(): void
+    {
+        config()->set('resolver.fallback', null);
+
+        $this->expectException(MissingConfigException::class);
+        $this->expectExceptionMessage('resolver.fallback');
+
+        Config::class('resolver.fallback', '')->resolve();
+    }
+
+    public function test_different_fallbacks_for_same_key_do_not_share_cache(): void
+    {
+        $first = Config::class('resolver.never_set', ConcreteClass::class)->resolve();
+        $second = Config::class('resolver.never_set', ExtendingConcrete::class)->resolve();
+
+        $this->assertSame(ConcreteClass::class, $first);
+        $this->assertSame(ExtendingConcrete::class, $second);
+    }
+
+    public function test_fallback_is_instantiable(): void
+    {
+        $instance = Config::class('resolver.never_set', ConcreteClass::class)
+            ->instantiable()
+            ->make();
+
+        $this->assertInstanceOf(ConcreteClass::class, $instance);
+    }
 }

@@ -2,14 +2,15 @@
 
 namespace DRC\ConfigResolver\Resolvers;
 
-use ReflectionClass;
 use DRC\ConfigResolver\Exceptions\InvalidClassException;
 use DRC\ConfigResolver\Exceptions\InvalidContractException;
 use DRC\ConfigResolver\Exceptions\InvalidParentException;
 use DRC\ConfigResolver\Exceptions\MissingConfigException;
 use DRC\ConfigResolver\Exceptions\NotInstantiableException;
+use DRC\ConfigResolver\Resolvers\Resolver;
+use ReflectionClass;
 
-class ClassResolver
+class ClassResolver extends Resolver
 {
     protected static array $resolved = [];
 
@@ -18,11 +19,6 @@ class ClassResolver
     protected ?string $requiredParent = null;
 
     protected bool $mustBeInstantiable = false;
-
-    public function __construct(
-        protected string $configKey
-    ) {
-    }
 
     public static function flushCache(): void
     {
@@ -33,6 +29,7 @@ class ClassResolver
     {
         return implode("\0", [
             $this->configKey,
+            serialize($this->fallback),
             $this->requiredContract ?? '',
             $this->requiredParent ?? '',
             $this->mustBeInstantiable ? '1' : '0',
@@ -68,7 +65,7 @@ class ClassResolver
             return static::$resolved[$key];
         }
 
-        $class = config($this->configKey);
+        $class = config($this->configKey, $this->fallback);
 
         if (blank($class)) {
             throw new MissingConfigException($this->configKey);
