@@ -28,8 +28,8 @@ class ClassResolver extends Resolver
     protected function cacheKey(): string
     {
         return implode("\0", [
-            $this->configKey,
-            serialize($this->fallback),
+            $this->getKey(),
+            serialize($this->getDefault()),
             $this->requiredContract ?? '',
             $this->requiredParent ?? '',
             $this->mustBeInstantiable ? '1' : '0',
@@ -65,15 +65,15 @@ class ClassResolver extends Resolver
             return static::$resolved[$key];
         }
 
-        $class = config($this->configKey, $this->fallback);
+        $class = $this->getResolvedKey();
 
         if (blank($class)) {
-            throw new MissingConfigException($this->configKey);
+            throw new MissingConfigException($this->getKey());
         }
 
         if (! is_string($class) || ! (class_exists($class) || interface_exists($class))) {
             throw new InvalidClassException(
-                $this->configKey,
+                $this->getKey(),
                 (string) $class
             );
         }
@@ -83,7 +83,7 @@ class ClassResolver extends Resolver
             ! is_a($class, $this->requiredContract, true)
         ) {
             throw new InvalidContractException(
-                $this->configKey,
+                $this->getKey(),
                 $class,
                 $this->requiredContract
             );
@@ -94,7 +94,7 @@ class ClassResolver extends Resolver
             ! is_a($class, $this->requiredParent, true)
         ) {
             throw new InvalidParentException(
-                $this->configKey,
+                $this->getKey(),
                 $class,
                 $this->requiredParent
             );
@@ -105,7 +105,7 @@ class ClassResolver extends Resolver
 
             if (! $reflection->isInstantiable()) {
                 throw new NotInstantiableException(
-                    $this->configKey,
+                    $this->getKey(),
                     $class
                 );
             }
