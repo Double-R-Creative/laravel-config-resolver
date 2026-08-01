@@ -137,6 +137,75 @@ $gateway = Config::array('services.payment.gateway')
     ->resolve();
 ```
 
+## String Resolution
+
+Resolve a config value that must be a string.
+
+```php
+use Vendor\ConfigResolver\Config;
+
+// Resolve a string from config
+$name = Config::string('services.payment.name')->resolve();
+
+// With a default when the config key is absent
+$name = Config::string('services.payment.name', 'stripe')->resolve();
+```
+
+### Require non-empty
+
+Throws `EmptyStringException` if the string is empty or whitespace-only. Note:
+`'0'` is considered non-empty.
+
+```php
+$name = Config::string('services.payment.name')
+    ->nonEmpty()
+    ->resolve();
+```
+
+### Require a regex match
+
+Throws `InvalidStringFormatException` if the string does not match the PCRE
+pattern. An invalid pattern itself throws `InvalidPatternException`:
+
+```php
+$name = Config::string('services.payment.name')
+    ->matches('/^[a-z0-9-]+$/i')
+    ->resolve();
+```
+
+### Require a prefix
+
+Throws `InvalidStringFormatException` if the string does not start with the
+given prefix:
+
+```php
+$name = Config::string('services.payment.name')
+    ->startsWith('pay-')
+    ->resolve();
+```
+
+### Require an allowed value
+
+Throws `InvalidStringFormatException` if the string is not one of the given
+values (strict comparison):
+
+```php
+$gateway = Config::string('services.payment.gateway')
+    ->in(['stripe', 'paypal'])
+    ->resolve();
+```
+
+### Stack constraints
+
+```php
+$gateway = Config::string('services.payment.gateway')
+    ->nonEmpty()
+    ->matches('/^[a-z]+$/')
+    ->startsWith('pay-')
+    ->in(['stripe', 'paypal'])
+    ->resolve();
+```
+
 ## Resolution Caching
 
 Each call to `resolve()` is fast (~5–20µs per call), but when the same resolver
@@ -192,6 +261,10 @@ All exceptions extend `ConfigException` (which extends `RuntimeException`).
 | `MissingArrayKeyException` | Array does not contain a required key |
 | `MissingArrayValueException` | Array does not contain a required value |
 | `InvalidArrayTypeException` | Array is not the required list or associative type |
+| `InvalidStringException` | Value is not a string |
+| `EmptyStringException` | Value is empty but must not be |
+| `InvalidPatternException` | The provided regex pattern is invalid |
+| `InvalidStringFormatException` | Value failed a regex, prefix, or allowed-value check |
 
 ## Instantiation
 
