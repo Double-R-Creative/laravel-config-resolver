@@ -20,11 +20,6 @@ class ClassResolver extends Resolver
 
     protected bool $mustBeInstantiable = false;
 
-    public static function flushCache(): void
-    {
-        static::$resolved = [];
-    }
-
     protected function cacheKey(): string
     {
         return implode("\0", [
@@ -59,59 +54,55 @@ class ClassResolver extends Resolver
 
     public function resolve(): string
     {
-        $key = $this->cacheKey();
+        return $this->cached(function (): string {
+            $class = $this->getResolvedKey();
 
-        if (array_key_exists($key, static::$resolved)) {
-            return static::$resolved[$key];
-        }
+            if (blank($class)) {
+                throw new MissingConfigException($this->getKey());
+            }
 
-        $class = $this->getResolvedKey();
-
-        if (blank($class)) {
-            throw new MissingConfigException($this->getKey());
-        }
-
-        if (! is_string($class) || ! (class_exists($class) || interface_exists($class))) {
-            throw new InvalidClassException(
-                $this->getKey(),
-                (string) $class
-            );
-        }
-
-        if (
-            ($this->requiredContract !== null) &&
-            ! is_a($class, $this->requiredContract, true)
-        ) {
-            throw new InvalidContractException(
-                $this->getKey(),
-                $class,
-                $this->requiredContract
-            );
-        }
-
-        if (
-            $this->requiredParent !== null &&
-            ! is_a($class, $this->requiredParent, true)
-        ) {
-            throw new InvalidParentException(
-                $this->getKey(),
-                $class,
-                $this->requiredParent
-            );
-        }
-
-        if ($this->mustBeInstantiable) {
-            $reflection = new ReflectionClass($class);
-
-            if (! $reflection->isInstantiable()) {
-                throw new NotInstantiableException(
+            if (! is_string($class) || ! (class_exists($class) || interface_exists($class))) {
+                throw new InvalidClassException(
                     $this->getKey(),
-                    $class
+                    (string) $class
                 );
             }
-        }
 
-        return static::$resolved[$key] = $class;
+            if (
+                ($this->requiredContract !== null) &&
+                ! is_a($class, $this->requiredContract, true)
+            ) {
+                throw new InvalidContractException(
+                    $this->getKey(),
+                    $class,
+                    $this->requiredContract
+                );
+            }
+
+            if (
+                $this->requiredParent !== null &&
+                ! is_a($class, $this->requiredParent, true)
+            ) {
+                throw new InvalidParentException(
+                    $this->getKey(),
+                    $class,
+                    $this->requiredParent
+                );
+            }
+
+            if ($this->mustBeInstantiable) {
+                $reflection = new ReflectionClass($class);
+
+                if (! $reflection->isInstantiable()) {
+                    throw new NotInstantiableException(
+                        $this->getKey(),
+                        $class
+                    );
+                }
+            }
+
+            return $class;
+        });
     }
 
     public function make(array $parameters = []): object

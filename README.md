@@ -71,6 +71,72 @@ $class = Config::class('models.customer')
     ->resolve();
 ```
 
+## Array Resolution
+
+Resolve a config value that must be an array. An empty array is valid by default.
+
+```php
+use Vendor\ConfigResolver\Config;
+
+// Resolve an array from config
+$gateways = Config::array('services.payment.gateways')->resolve();
+
+// With a default when the config key is absent
+$gateways = Config::array('services.payment.gateways', ['stripe'])->resolve();
+```
+
+### Require keys
+
+Throws `MissingArrayKeyException` if the array does not contain every given key:
+
+```php
+$gateway = Config::array('services.payment.gateway')
+    ->hasKeys(['url', 'secret'])
+    ->resolve();
+```
+
+### Require values
+
+Throws `MissingArrayValueException` if the array does not contain every given value (strict comparison):
+
+```php
+$gateway = Config::array('services.payment.gateways')
+    ->hasValues(['stripe', 'paypal'])
+    ->resolve();
+```
+
+### Require non-empty
+
+Throws `EmptyArrayException` if the array is empty:
+
+```php
+$gateway = Config::array('services.payment.gateways')
+    ->nonEmpty()
+    ->resolve();
+```
+
+### Require a list or associative array
+
+`isList()` uses `array_is_list()`. Throws `InvalidArrayTypeException` otherwise:
+
+```php
+// Indexed array (sequential integer keys)
+$gateways = Config::array('services.payment.gateways')->isList()->resolve();
+
+// Key/value pairs (any non-list array)
+$gateway = Config::array('services.payment.gateway')->isAssociative()->resolve();
+```
+
+### Stack constraints
+
+```php
+$gateway = Config::array('services.payment.gateway')
+    ->hasKeys(['url', 'secret'])
+    ->nonEmpty()
+    ->isAssociative()
+    ->resolve();
+```
+
 ## Resolution Caching
 
 Each call to `resolve()` is fast (~5–20µs per call), but when the same resolver
@@ -121,6 +187,11 @@ All exceptions extend `ConfigException` (which extends `RuntimeException`).
 | `InvalidContractException` | Class does not implement the required interface |
 | `InvalidParentException` | Class does not extend the required parent |
 | `NotInstantiableException` | Class is abstract or an interface |
+| `InvalidArrayException` | Value is not an array |
+| `EmptyArrayException` | Value is an empty array but must not be |
+| `MissingArrayKeyException` | Array does not contain a required key |
+| `MissingArrayValueException` | Array does not contain a required value |
+| `InvalidArrayTypeException` | Array is not the required list or associative type |
 
 ## Instantiation
 
